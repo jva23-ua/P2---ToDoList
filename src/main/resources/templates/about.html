@@ -4,19 +4,17 @@
 <head th:replace="fragments :: head (titulo='Acerca de')"></head>
 
 <body>
-<div class="container-fluid">
-    <div class="container-fluid">
-        <h1>ToDoList</h1>
-        <ul>
-            <li>Desarrollada por Jonathan Villacis </li>
-            <li>Versión 1.0.1</li>
-            <li>Fecha de release: 29/09/2026</li>
-        </ul>
-    </div>
+<div th:replace="fragments :: navbar(${usuarioLogeado}, ${nombreUsuario})"></div>
 
+<div class="container-fluid mt-3">
+    <h1>ToDoList</h1>
+    <ul>
+        <li>Desarrollada por Jonathan Villacis </li>
+        <li>Versión 1.0.1</li>
+        <li>Fecha de release: 29/09/2026</li>
+    </ul>
 </div>
 
-<div th:replace="fragments::javascript"/>
-
+<div th:replace="fragments::javascript"></div>
 </body>
 </html>
