@@ -43,6 +43,8 @@ public class TareaController {
 
         UsuarioData usuario = usuarioService.findById(idUsuario);
         model.addAttribute("usuario", usuario);
+        model.addAttribute("usuarioLogeado", idUsuario);
+        model.addAttribute("nombreUsuario", usuario.getNombre());
         return "formNuevaTarea";
     }
 
@@ -67,6 +69,8 @@ public class TareaController {
         List<TareaData> tareas = tareaService.allTareasUsuario(idUsuario);
         model.addAttribute("usuario", usuario);
         model.addAttribute("tareas", tareas);
+        model.addAttribute("usuarioLogeado", idUsuario);
+        model.addAttribute("nombreUsuario", usuario.getNombre());
         return "listaTareas";
     }
 
@@ -80,8 +84,11 @@ public class TareaController {
         }
 
         comprobarUsuarioLogeado(tarea.getUsuarioId());
+        UsuarioData usuario = usuarioService.findById(tarea.getUsuarioId());
 
         model.addAttribute("tarea", tarea);
+        model.addAttribute("usuarioLogeado", tarea.getUsuarioId());
+        model.addAttribute("nombreUsuario", usuario.getNombre());
         tareaData.setTitulo(tarea.getTitulo());
         return "formEditarTarea";
     }
