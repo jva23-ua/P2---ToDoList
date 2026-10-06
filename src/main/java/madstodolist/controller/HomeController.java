@@ -12,13 +12,23 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class HomeController {
 
     @Autowired
-    UsuarioService usuarioService;
+    private ManagerUserSession managerUserSession;
 
     @Autowired
-    ManagerUserSession managerUserSession;
+    private UsuarioService usuarioService;
 
     @GetMapping("/about")
     public String about(Model model) {
+        Long idUsuarioLogeado = managerUserSession.usuarioLogeado();
+        model.addAttribute("usuarioLogeado", idUsuarioLogeado);
+
+        if (idUsuarioLogeado != null) {
+            UsuarioData usuario = usuarioService.findById(idUsuarioLogeado);
+            if (usuario != null) {
+                model.addAttribute("nombreUsuario", usuario.getNombre());
+            }
+        }
+
         return "about";
     }
 

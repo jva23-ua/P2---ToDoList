@@ -10,6 +10,7 @@
 
 ## 3. Plantillas Thymeleaf y Fragmentos UI
 
+
 ## 4. Ejemplos de Código Fuente Relevante y Explicación Técnica
 ### 4.1. Lógica del Menú Dinámico y Sesión de Usuario
 ### 4.2. Consulta y Detalle de Usuarios
