@@ -10,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.mockito.Mockito.when;
@@ -99,6 +99,38 @@ public class AcercaDeWebTest {
         when(managerUserSession.usuarioLogeado()).thenReturn(null);
 
         this.mockMvc.perform(get("/registrados"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    public void getDescripcionRegistradoConLoginMuestraDatosSinPassword() throws Exception {
+        UsuarioData admin = new UsuarioData();
+        admin.setEmail("admin@ua");
+        admin.setPassword("123");
+        admin.setNombre("Admin");
+        admin = usuarioService.registrar(admin);
+
+        UsuarioData u = new UsuarioData();
+        u.setEmail("u1@ua");
+        u.setPassword("secret");
+        u.setNombre("Usuario Uno");
+        u = usuarioService.registrar(u);
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(admin.getId());
+
+        this.mockMvc.perform(get("/registrados/" + u.getId()))
+                .andExpect(content().string(containsString("Descripción de usuario")))
+                .andExpect(content().string(containsString("u1@ua")))
+                .andExpect(content().string(containsString("Usuario Uno")))
+                .andExpect(content().string(not(containsString("secret"))));
+    }
+
+    @Test
+    public void getDescripcionRegistradoSinLoginRedirigeALogin() throws Exception {
+        when(managerUserSession.usuarioLogeado()).thenReturn(null);
+
+        this.mockMvc.perform(get("/registrados/1"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
     }
