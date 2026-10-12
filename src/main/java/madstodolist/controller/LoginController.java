@@ -47,6 +47,10 @@ public class LoginController {
 
             managerUserSession.logearUsuario(usuario.getId());
 
+            if (Boolean.TRUE.equals(usuario.getAdmin()) || usuario.isAdmin() || Boolean.TRUE.equals(usuario.getAdministrador())) {
+                return "redirect:/registrados";
+            }
+
             return "redirect:/usuarios/" + usuario.getId() + "/tareas";
         } else if (loginStatus == UsuarioService.LoginStatus.USER_NOT_FOUND) {
             model.addAttribute("error", "No existe usuario");
@@ -61,30 +65,39 @@ public class LoginController {
     @GetMapping("/registro")
     public String registroForm(Model model) {
         model.addAttribute("registroData", new RegistroData());
-        return "formRegistro";
-    }
+       model.addAttribute("existeAdministrador", usuarioService.existeAdministrador());
+       return "formRegistro";
+   }
 
    @PostMapping("/registro")
    public String registroSubmit(@Valid RegistroData registroData, BindingResult result, Model model) {
+       model.addAttribute("existeAdministrador", usuarioService.existeAdministrador());
 
-        if (result.hasErrors()) {
-            return "formRegistro";
-        }
+       if (result.hasErrors()) {
+           return "formRegistro";
+       }
 
-        if (usuarioService.findByEmail(registroData.getEmail()) != null) {
-            model.addAttribute("registroData", registroData);
-            model.addAttribute("error", "El usuario " + registroData.getEmail() + " ya existe");
-            return "formRegistro";
-        }
+       if (registroData.isAdmin() && usuarioService.existeAdministrador()) {
+           model.addAttribute("registroData", registroData);
+           model.addAttribute("error", "Ya existe un administrador");
+           return "formRegistro";
+       }
 
-        UsuarioData usuario = new UsuarioData();
-        usuario.setEmail(registroData.getEmail());
-        usuario.setPassword(registroData.getPassword());
-        usuario.setFechaNacimiento(registroData.getFechaNacimiento());
-        usuario.setNombre(registroData.getNombre());
+       if (usuarioService.findByEmail(registroData.getEmail()) != null) {
+           model.addAttribute("registroData", registroData);
+           model.addAttribute("error", "El usuario " + registroData.getEmail() + " ya existe");
+           return "formRegistro";
+       }
 
-        usuarioService.registrar(usuario);
-        return "redirect:/login";
+       UsuarioData usuario = new UsuarioData();
+       usuario.setEmail(registroData.getEmail());
+       usuario.setPassword(registroData.getPassword());
+       usuario.setFechaNacimiento(registroData.getFechaNacimiento());
+       usuario.setNombre(registroData.getNombre());
+       usuario.setAdmin(registroData.isAdmin());
+
+       usuarioService.registrar(usuario);
+       return "redirect:/login";
    }
 
    @GetMapping("/logout")

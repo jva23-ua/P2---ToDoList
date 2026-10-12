@@ -40,13 +40,14 @@ public class HomeController {
             return "redirect:/login";
         }
 
+        UsuarioData usuario = usuarioService.findById(idUsuarioLogeado);
+        if (usuario == null || !usuario.isAdmin()) {
+            return "redirect:/usuarios/" + idUsuarioLogeado + "/tareas";
+        }
+
         model.addAttribute("usuarios", usuarioService.allUsuarios());
         model.addAttribute("usuarioLogeado", idUsuarioLogeado);
-
-        UsuarioData usuario = usuarioService.findById(idUsuarioLogeado);
-        if (usuario != null) {
-            model.addAttribute("nombreUsuario", usuario.getNombre());
-        }
+        model.addAttribute("nombreUsuario", usuario.getNombre());
 
         return "registrados";
     }
@@ -59,6 +60,10 @@ public class HomeController {
         }
 
         UsuarioData usuarioLogeado = usuarioService.findById(idUsuarioLogeado);
+        if (usuarioLogeado == null || !usuarioLogeado.isAdmin()) {
+            return "redirect:/usuarios/" + idUsuarioLogeado + "/tareas";
+        }
+
         if (usuarioLogeado != null) {
             model.addAttribute("nombreUsuario", usuarioLogeado.getNombre());
         }
