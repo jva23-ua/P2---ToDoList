@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 public class HomeController {
@@ -48,5 +49,27 @@ public class HomeController {
         }
 
         return "registrados";
+    }
+
+    @GetMapping("/registrados/{id}")
+    public String descripcionRegistrado(@PathVariable(value = "id") Long idUsuario, Model model) {
+        Long idUsuarioLogeado = managerUserSession.usuarioLogeado();
+        if (idUsuarioLogeado == null) {
+            return "redirect:/login";
+        }
+
+        UsuarioData usuarioLogeado = usuarioService.findById(idUsuarioLogeado);
+        if (usuarioLogeado != null) {
+            model.addAttribute("nombreUsuario", usuarioLogeado.getNombre());
+        }
+        model.addAttribute("usuarioLogeado", idUsuarioLogeado);
+
+        UsuarioData usuario = usuarioService.findById(idUsuario);
+        if (usuario == null) {
+            return "redirect:/registrados";
+        }
+
+        model.addAttribute("usuario", usuario);
+        return "descripcionRegistrado";
     }
 }
