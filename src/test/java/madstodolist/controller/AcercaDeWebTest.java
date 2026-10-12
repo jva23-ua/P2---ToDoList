@@ -74,6 +74,7 @@ public class AcercaDeWebTest {
         admin.setEmail("admin@ua");
         admin.setPassword("123");
         admin.setNombre("Admin");
+        admin.setAdmin(true);
         admin = usuarioService.registrar(admin);
         Long adminId = admin.getId();
 
@@ -95,6 +96,21 @@ public class AcercaDeWebTest {
     }
 
     @Test
+    public void getRegistradosUsuarioNoAdminRedirigeALaListaDeTareas() throws Exception {
+        UsuarioData usuario = new UsuarioData();
+        usuario.setEmail("user@ua");
+        usuario.setPassword("123");
+        usuario.setNombre("Usuario");
+        usuario = usuarioService.registrar(usuario);
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuario.getId());
+
+        this.mockMvc.perform(get("/registrados"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/usuarios/" + usuario.getId() + "/tareas"));
+    }
+
+    @Test
     public void getRegistradosSinLoginRedirigeALogin() throws Exception {
         when(managerUserSession.usuarioLogeado()).thenReturn(null);
 
@@ -109,6 +125,7 @@ public class AcercaDeWebTest {
         admin.setEmail("admin@ua");
         admin.setPassword("123");
         admin.setNombre("Admin");
+        admin.setAdmin(true);
         admin = usuarioService.registrar(admin);
 
         UsuarioData u = new UsuarioData();
@@ -124,6 +141,21 @@ public class AcercaDeWebTest {
                 .andExpect(content().string(containsString("u1@ua")))
                 .andExpect(content().string(containsString("Usuario Uno")))
                 .andExpect(content().string(not(containsString("secret"))));
+    }
+
+    @Test
+    public void getDescripcionRegistradoUsuarioNoAdminRedirigeALaListaDeTareas() throws Exception {
+        UsuarioData usuario = new UsuarioData();
+        usuario.setEmail("user@ua");
+        usuario.setPassword("123");
+        usuario.setNombre("Usuario");
+        usuario = usuarioService.registrar(usuario);
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuario.getId());
+
+        this.mockMvc.perform(get("/registrados/" + usuario.getId()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/usuarios/" + usuario.getId() + "/tareas"));
     }
 
     @Test

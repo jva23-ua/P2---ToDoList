@@ -45,17 +45,22 @@ public class UsuarioService {
     @Transactional
     public UsuarioData registrar(UsuarioData usuario) {
         Optional<Usuario> usuarioBD = usuarioRepository.findByEmail(usuario.getEmail());
-        if (usuarioBD.isPresent())
+        if (usuarioBD.isPresent()) {
             throw new UsuarioServiceException("El usuario " + usuario.getEmail() + " ya está registrado");
-        else if (usuario.getEmail() == null)
+        } else if (usuario.getEmail() == null) {
             throw new UsuarioServiceException("El usuario no tiene email");
-        else if (usuario.getPassword() == null)
+        } else if (usuario.getPassword() == null) {
             throw new UsuarioServiceException("El usuario no tiene password");
-        else {
-            Usuario usuarioNuevo = modelMapper.map(usuario, Usuario.class);
-            usuarioNuevo = usuarioRepository.save(usuarioNuevo);
-            return modelMapper.map(usuarioNuevo, UsuarioData.class);
         }
+
+        boolean quiereSerAdmin = Boolean.TRUE.equals(usuario.getAdmin()) || usuario.isAdmin() || Boolean.TRUE.equals(usuario.getAdministrador());
+        if (quiereSerAdmin && existeAdministrador()) {
+            throw new UsuarioServiceException("Ya existe un administrador");
+        }
+
+        Usuario usuarioNuevo = modelMapper.map(usuario, Usuario.class);
+        usuarioNuevo = usuarioRepository.save(usuarioNuevo);
+        return modelMapper.map(usuarioNuevo, UsuarioData.class);
     }
 
     @Transactional(readOnly = true)
@@ -65,6 +70,18 @@ public class UsuarioService {
         else {
             return modelMapper.map(usuario, UsuarioData.class);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existeAdministrador() {
+        return usuarioRepository.existsByAdminTrue();
+    }
+
+    @Transactional(readOnly = true)
+    public UsuarioData findAdministrador() {
+        Usuario usuario = usuarioRepository.findByAdminTrue().orElse(null);
+        if (usuario == null) return null;
+        return modelMapper.map(usuario, UsuarioData.class);
     }
 
     @Transactional(readOnly = true)
