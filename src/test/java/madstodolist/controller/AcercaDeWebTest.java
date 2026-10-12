@@ -96,7 +96,7 @@ public class AcercaDeWebTest {
     }
 
     @Test
-    public void getRegistradosUsuarioNoAdminRedirigeALaListaDeTareas() throws Exception {
+    public void getRegistradosUsuarioNoAdminDevuelveNoAutorizado() throws Exception {
         UsuarioData usuario = new UsuarioData();
         usuario.setEmail("user@ua");
         usuario.setPassword("123");
@@ -106,17 +106,17 @@ public class AcercaDeWebTest {
         when(managerUserSession.usuarioLogeado()).thenReturn(usuario.getId());
 
         this.mockMvc.perform(get("/registrados"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/usuarios/" + usuario.getId() + "/tareas"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string(containsString("No tienes suficientes permisos para acceder a esta página.")));
     }
 
     @Test
-    public void getRegistradosSinLoginRedirigeALogin() throws Exception {
+    public void getRegistradosSinLoginDevuelveNoAutorizado() throws Exception {
         when(managerUserSession.usuarioLogeado()).thenReturn(null);
 
         this.mockMvc.perform(get("/registrados"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string(containsString("No tienes suficientes permisos para acceder a esta página.")));
     }
 
     @Test
@@ -144,7 +144,7 @@ public class AcercaDeWebTest {
     }
 
     @Test
-    public void getDescripcionRegistradoUsuarioNoAdminRedirigeALaListaDeTareas() throws Exception {
+    public void getDescripcionRegistradoUsuarioNoAdminDevuelveNoAutorizado() throws Exception {
         UsuarioData usuario = new UsuarioData();
         usuario.setEmail("user@ua");
         usuario.setPassword("123");
@@ -154,16 +154,16 @@ public class AcercaDeWebTest {
         when(managerUserSession.usuarioLogeado()).thenReturn(usuario.getId());
 
         this.mockMvc.perform(get("/registrados/" + usuario.getId()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/usuarios/" + usuario.getId() + "/tareas"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string(containsString("No tienes suficientes permisos para acceder a esta página.")));
     }
 
     @Test
-    public void getDescripcionRegistradoSinLoginRedirigeALogin() throws Exception {
+    public void getDescripcionRegistradoSinLoginDevuelveNoAutorizado() throws Exception {
         when(managerUserSession.usuarioLogeado()).thenReturn(null);
 
         this.mockMvc.perform(get("/registrados/1"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string(containsString("No tienes suficientes permisos para acceder a esta página.")));
     }
 }
