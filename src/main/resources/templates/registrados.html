@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments :: head (titulo='Usuarios registrados')"></head>
+
+<body>
+<div th:replace="fragments :: navbar(${usuarioLogeado}, ${nombreUsuario})"></div>
+
+<div class="container-fluid mt-3">
+    <h2>Usuarios registrados</h2>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Id</th>
+            <th>Correo electrónico</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="usuario : ${usuarios}">
+            <td th:text="${usuario.id}"></td>
+            <td th:text="${usuario.email}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div th:replace="fragments::javascript"></div>
+</body>
+</html>

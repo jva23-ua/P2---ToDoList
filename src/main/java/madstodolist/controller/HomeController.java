@@ -31,4 +31,22 @@ public class HomeController {
 
         return "about";
     }
+
+    @GetMapping("/registrados")
+    public String registrados(Model model) {
+        Long idUsuarioLogeado = managerUserSession.usuarioLogeado();
+        if (idUsuarioLogeado == null) {
+            return "redirect:/login";
+        }
+
+        model.addAttribute("usuarios", usuarioService.allUsuarios());
+        model.addAttribute("usuarioLogeado", idUsuarioLogeado);
+
+        UsuarioData usuario = usuarioService.findById(idUsuarioLogeado);
+        if (usuario != null) {
+            model.addAttribute("nombreUsuario", usuario.getNombre());
+        }
+
+        return "registrados";
+    }
 }
