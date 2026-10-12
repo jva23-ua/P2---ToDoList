@@ -34,17 +34,19 @@ public class HomeController {
 
     @GetMapping("/registrados")
     public String registrados(Model model) {
-        model.addAttribute("usuarios", usuarioService.allUsuarios());
-
         Long idUsuarioLogeado = managerUserSession.usuarioLogeado();
+        if (idUsuarioLogeado == null) {
+            return "redirect:/login";
+        }
+
+        model.addAttribute("usuarios", usuarioService.allUsuarios());
         model.addAttribute("usuarioLogeado", idUsuarioLogeado);
 
-        if (idUsuarioLogeado != null) {
-            UsuarioData usuario = usuarioService.findById(idUsuarioLogeado);
-            if (usuario != null) {
-                model.addAttribute("nombreUsuario", usuario.getNombre());
-            }
+        UsuarioData usuario = usuarioService.findById(idUsuarioLogeado);
+        if (usuario != null) {
+            model.addAttribute("nombreUsuario", usuario.getNombre());
         }
+
         return "registrados";
     }
 }

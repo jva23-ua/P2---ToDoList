@@ -13,8 +13,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -69,6 +69,14 @@ public class AcercaDeWebTest {
 
     @Test
     public void getRegistradosDevuelveListadoUsuarios() throws Exception {
+        // GIVEN: usuario "admin" logeado
+        UsuarioData admin = new UsuarioData();
+        admin.setEmail("admin@ua");
+        admin.setPassword("123");
+        admin.setNombre("Admin");
+        admin = usuarioService.registrar(admin);
+        Long adminId = admin.getId();
+
         UsuarioData u1 = new UsuarioData();
         u1.setEmail("u1@ua");
         u1.setPassword("123");
@@ -79,10 +87,19 @@ public class AcercaDeWebTest {
         u2.setPassword("123");
         usuarioService.registrar(u2);
 
-        when(managerUserSession.usuarioLogeado()).thenReturn(null);
+        when(managerUserSession.usuarioLogeado()).thenReturn(adminId);
 
         this.mockMvc.perform(get("/registrados"))
                 .andExpect(content().string(containsString("u1@ua")))
                 .andExpect(content().string(containsString("u2@ua")));
+    }
+
+    @Test
+    public void getRegistradosSinLoginRedirigeALogin() throws Exception {
+        when(managerUserSession.usuarioLogeado()).thenReturn(null);
+
+        this.mockMvc.perform(get("/registrados"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 }
