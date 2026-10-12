@@ -1,6 +1,7 @@
 package madstodolist.controller;
 
 import madstodolist.authentication.ManagerUserSession;
+import madstodolist.controller.exception.UsuarioNoLogeadoException;
 import madstodolist.dto.UsuarioData;
 import madstodolist.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,12 +38,12 @@ public class HomeController {
     public String registrados(Model model) {
         Long idUsuarioLogeado = managerUserSession.usuarioLogeado();
         if (idUsuarioLogeado == null) {
-            return "redirect:/login";
+            throw new UsuarioNoLogeadoException();
         }
 
         UsuarioData usuario = usuarioService.findById(idUsuarioLogeado);
         if (usuario == null || !usuario.isAdmin()) {
-            return "redirect:/usuarios/" + idUsuarioLogeado + "/tareas";
+            throw new UsuarioNoLogeadoException();
         }
 
         model.addAttribute("usuarios", usuarioService.allUsuarios());
@@ -56,17 +57,15 @@ public class HomeController {
     public String descripcionRegistrado(@PathVariable(value = "id") Long idUsuario, Model model) {
         Long idUsuarioLogeado = managerUserSession.usuarioLogeado();
         if (idUsuarioLogeado == null) {
-            return "redirect:/login";
+            throw new UsuarioNoLogeadoException();
         }
 
         UsuarioData usuarioLogeado = usuarioService.findById(idUsuarioLogeado);
         if (usuarioLogeado == null || !usuarioLogeado.isAdmin()) {
-            return "redirect:/usuarios/" + idUsuarioLogeado + "/tareas";
+            throw new UsuarioNoLogeadoException();
         }
 
-        if (usuarioLogeado != null) {
-            model.addAttribute("nombreUsuario", usuarioLogeado.getNombre());
-        }
+        model.addAttribute("nombreUsuario", usuarioLogeado.getNombre());
         model.addAttribute("usuarioLogeado", idUsuarioLogeado);
 
         UsuarioData usuario = usuarioService.findById(idUsuario);

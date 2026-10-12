@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>No autorizado</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f8f9fa; color: #1f2937; }
+        .card { max-width: 720px; margin: 80px auto; background: white; border-radius: 8px; padding: 32px; box-shadow: 0 0 12px rgba(0,0,0,0.08); }
+        h1 { margin-top: 0; color: #b91c1c; }
+        .status { font-weight: bold; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="status">Error 401 - No autorizado</div>
+    <h1>Acceso no permitido</h1>
+    <p th:text="${mensaje}">No tienes suficientes permisos para acceder a esta página.</p>
+</div>
+</body>
+</html>
