@@ -57,6 +57,41 @@ public class UsuarioServiceTest {
     }
 
     @Test
+    public void servicioLoginUsuarioBloqueado() {
+        // GIVEN
+        // Un usuario en la BD
+        Long usuarioId = addUsuarioBD();
+
+        // WHEN
+        // bloqueamos el acceso del usuario y volvemos a intentar logearnos
+        usuarioService.bloquearAccesoUsuario(usuarioId, true);
+        UsuarioService.LoginStatus loginStatus = usuarioService.login("user@ua", "123");
+
+        // THEN
+        // el login devuelve USER_BLOCKED
+        assertThat(loginStatus).isEqualTo(UsuarioService.LoginStatus.USER_BLOCKED);
+
+        // WHEN
+        // habilitamos de nuevo el acceso del usuario
+        usuarioService.bloquearAccesoUsuario(usuarioId, false);
+        UsuarioService.LoginStatus loginStatus2 = usuarioService.login("user@ua", "123");
+
+        // THEN
+        // el login vuelve a funcionar correctamente
+        assertThat(loginStatus2).isEqualTo(UsuarioService.LoginStatus.LOGIN_OK);
+    }
+
+    @Test
+    public void servicioBloqueoUsuarioNoExistente() {
+        // WHEN, THEN
+        // Si bloqueamos a un usuario que no existe en la base de datos,
+        // se produce una excepción de tipo UsuarioServiceException
+        Assertions.assertThrows(UsuarioServiceException.class, () -> {
+            usuarioService.bloquearAccesoUsuario(99999L, true);
+        });
+    }
+
+    @Test
     public void servicioRegistroUsuario() {
         // WHEN
         // Registramos un usuario con un e-mail no existente en la base de datos,
