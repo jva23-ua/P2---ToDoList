@@ -93,4 +93,21 @@ public class UsuarioWebTest {
                         .param("password","000"))
                 .andExpect(content().string(containsString("Contraseña incorrecta")));
     }
+
+    @Test
+    public void servicioLoginUsuarioBloqueado() throws Exception {
+        // GIVEN
+        // Moqueamos el método usuarioService.login para que devuelva
+        // USER_BLOCKED
+        when(usuarioService.login("ana.garcia@gmail.com", "12345678"))
+                .thenReturn(UsuarioService.LoginStatus.USER_BLOCKED);
+
+        // WHEN, THEN
+        // Realizamos una petición POST con los datos del usuario mockeado y
+        // se debe devolver una página que contenga el mensaje de acceso bloqueado
+        this.mockMvc.perform(post("/login")
+                        .param("eMail","ana.garcia@gmail.com")
+                        .param("password","12345678"))
+                .andExpect(content().string(containsString("Tu acceso está bloqueado")));
+    }
 }

@@ -9,11 +9,20 @@
 <div class="container-fluid mt-3">
     <h2>Usuarios registrados</h2>
 
+    <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${!#strings.isEmpty(mensaje)}">
+        <span th:text="${mensaje}"></span>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
     <table class="table table-striped">
         <thead>
         <tr>
             <th>Id</th>
             <th>Correo electrónico</th>
+            <th>Estado</th>
+            <th>Acciones</th>
         </tr>
         </thead>
         <tbody>
@@ -21,10 +30,22 @@
             <td th:text="${usuario.id}"></td>
             <td th:text="${usuario.email}"></td>
             <td>
+                <span th:if="${usuario.bloqueado}" class="badge badge-danger">Bloqueado</span>
+                <span th:unless="${usuario.bloqueado}" class="badge badge-success">Habilitado</span>
+            </td>
+            <td>
                 <a class="btn btn-primary btn-sm"
                    th:href="@{/registrados/{id}(id=${usuario.id})}">
                     Ver descripción
                 </a>
+                <form th:action="@{/registrados/{id}/bloqueo(id=${usuario.id})}" method="post" style="display: inline;">
+                    <input type="hidden" name="bloqueado" th:value="${!usuario.bloqueado}"/>
+                    <button type="submit" class="btn btn-sm"
+                            th:classappend="${usuario.bloqueado} ? 'btn-success' : 'btn-danger'"
+                            th:text="${usuario.bloqueado} ? 'Habilitar' : 'Bloquear'">
+                        Bloquear
+                    </button>
+                </form>
             </td>
         </tr>
         </tbody>
