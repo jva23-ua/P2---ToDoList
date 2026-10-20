@@ -203,7 +203,7 @@ public class AcercaDeWebTest {
     public void postBloqueoSinLoginDevuelveNoAutorizado() throws Exception {
         when(managerUserSession.usuarioLogeado()).thenReturn(null);
 
-        this.mockMvc.perform(post("/registrados/1/bloqueo")
+        this.mockMvc.perform(post("/registrados/1/bloqueos")
                         .param("bloqueado", "true"))
                 .andExpect(status().isUnauthorized());
     }
