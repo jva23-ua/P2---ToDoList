@@ -4,16 +4,34 @@ import madstodolist.repository.EquipoRepository;
 
 import javax.persistence.*;
 import java.util.Objects;
+import java.util.Set;
+import java.util.HashSet;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "equipos")
-public class Equipo {
+public class Equipo implements Serializable {
 
     private String nombre;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // Declaramos el tipo de recuperación como LAZY.
+    // No haría falta porque es el tipo por defecto en una
+    // relación a muchos.
+    // Al recuperar un equipo NO SE RECUPERA AUTOMÁTICAMENTE
+    // la lista de usuarios. Sólo se recupera cuando se accede al
+    // atributo 'usuarios'; entonces se genera una query en la
+    // BD que devuelve todos los usuarios del equipo y rellena el
+    // atributo.
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "equipo_usuario",
+            joinColumns = { @JoinColumn(name = "fk_equipo") },
+            inverseJoinColumns = {@JoinColumn(name = "fk_usuario")})
+    Set<Usuario> usuarios = new HashSet<>();
 
     // Constructor vacío necesario para JPA/Hibernate
     public Equipo() {}
@@ -30,6 +48,15 @@ public class Equipo {
     }
     public void setId(Long id){
         this.id = id;
+    }
+
+    public Set<Usuario> getUsuarios(){
+        return usuarios;
+    }
+
+    public void addUsuario(Usuario usuario){
+        this.getUsuarios().add(usuario);
+        usuario.getEquipos().add(this);
     }
 
     public boolean equals(Object o){
