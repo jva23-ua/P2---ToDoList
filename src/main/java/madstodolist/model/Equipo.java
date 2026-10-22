@@ -3,12 +3,13 @@ package madstodolist.model;
 import madstodolist.repository.EquipoRepository;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "equipos")
 public class Equipo {
 
-    String nombre;
+    private String nombre;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,5 +27,22 @@ public class Equipo {
     }
     public Long getId(){
         return id;
+    }
+    public void setId(Long id){
+        this.id = id;
+    }
+
+    public boolean equals(Object o){
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        Equipo equipo = (Equipo) o;
+        if(id != null && equipo.id != null){
+            return Objects.equals(id, equipo.id);
+        }
+        return nombre.equals(equipo.nombre);
+    }
+
+    public int hashCode(){
+        return Objects.hash(nombre);
     }
 }
