@@ -36,12 +36,9 @@ public class EquipoService {
 
     @Transactional(readOnly = true)
     public EquipoData recuperarEquipo(Long id) {
-        // Completar
-        Equipo equipo = equipoRepository.findById(id).orElse(null);
-        if(equipo == null) return null;
-        else{
-            return modelMapper.map(equipo, EquipoData.class);
-        }
+        Equipo equipo = equipoRepository.findById(id)
+                .orElseThrow(() -> new EquipoServiceException("No existe el equipo con id " + id));
+        return modelMapper.map(equipo, EquipoData.class);
     }
 
     @Transactional(readOnly = true)
@@ -54,15 +51,18 @@ public class EquipoService {
                 .collect(Collectors.toList());
     }
     @Transactional
-    public void añadirUsuarioAEquipo(Long id, Long id1) {
-        Equipo equipo = equipoRepository.findById(id).orElse(null);
-        Usuario usuario = usuarioRepository.findById(id1).orElse(null);
+    public void añadirUsuarioAEquipo(Long idEquipo, Long idUsuario) {
+        Equipo equipo = equipoRepository.findById(idEquipo)
+                .orElseThrow(() -> new EquipoServiceException("No existe el equipo con id " + idEquipo));
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new EquipoServiceException("No existe el usuario con id " + idUsuario));
         equipo.addUsuario(usuario);
     }
 
     @Transactional(readOnly = true)
     public List<UsuarioData> usuariosEquipo(Long id) {
-        Equipo equipo = equipoRepository.findById(id).orElse(null);
+        Equipo equipo = equipoRepository.findById(id)
+                .orElseThrow(() -> new EquipoServiceException("No existe el equipo con id " + id));
         // Hacemos uso de Java Stream API para mapear la lista de entidades a DTOs.
         return equipo.getUsuarios().stream()
                 .map(usuario -> modelMapper.map(usuario, UsuarioData.class))
@@ -70,7 +70,8 @@ public class EquipoService {
     }
     @Transactional(readOnly = true)
     public List<EquipoData> equiposUsuario(Long id){
-        Usuario usuario = usuarioRepository.findById(id).orElse(null);
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new EquipoServiceException("No existe el usuario con id " + id));
         return usuario.getEquipos().stream()
                 .map(equipo -> modelMapper.map(equipo, EquipoData.class))
                 .collect(Collectors.toList());

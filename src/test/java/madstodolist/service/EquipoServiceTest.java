@@ -5,6 +5,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import madstodolist.dto.EquipoData;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -66,7 +68,7 @@ public class EquipoServiceTest {
         assertThat(usuarios).hasSize(1);
         assertThat(usuarios.get(0).getEmail()).isEqualTo("user@ua");
     }
-    
+
     @Test
     public void recuperarEquiposDeUsuario() {
         // GIVEN
@@ -89,5 +91,23 @@ public class EquipoServiceTest {
         assertThat(equipos).hasSize(2);
         assertThat(equipos.get(0).getNombre()).isEqualTo("Proyecto 1");
         assertThat(equipos.get(1).getNombre()).isEqualTo("Proyecto 2");
+    }
+    @Test
+    public void comprobarExcepciones() {
+        // Comprobamos las excepciones lanzadas por los métodos
+        // recuperarEquipo, añadirUsuarioAEquipo, usuariosEquipo y equiposUsuario
+        assertThatThrownBy(() -> equipoService.recuperarEquipo(1L))
+                .isInstanceOf(EquipoServiceException.class);
+        assertThatThrownBy(() -> equipoService.añadirUsuarioAEquipo(1L, 1L))
+                .isInstanceOf(EquipoServiceException.class);
+        assertThatThrownBy(() -> equipoService.usuariosEquipo(1L))
+                .isInstanceOf(EquipoServiceException.class);
+        assertThatThrownBy(() -> equipoService.equiposUsuario(1L))
+                .isInstanceOf(EquipoServiceException.class);
+
+        // Creamos un equipo pero no un usuario y comprobamos que también se lanza una excepción
+        EquipoData equipo = equipoService.crearEquipo("Proyecto 1");
+        assertThatThrownBy(() -> equipoService.añadirUsuarioAEquipo(equipo.getId(), 1L))
+                .isInstanceOf(EquipoServiceException.class);
     }
 }
