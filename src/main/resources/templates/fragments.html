@@ -27,6 +27,9 @@
             <li class="nav-item">
                 <a class="nav-link" th:href="@{/usuarios/{id}/tareas(id=${usuarioLogeado})}">Tareas</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/equipos}">Equipos</a>
+            </li>
         </ul>
 
         <ul class="navbar-nav ml-auto" th:if="${usuarioLogeado != null}">
