@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments :: head (titulo='Equipos')"></head>
+
+<body>
+<div th:replace="fragments :: navbar(${usuarioLogeado}, ${nombreUsuario})"></div>
+
+<div class="container-fluid mt-3">
+  <h2>Listado de equipos</h2>
+
+  <!-- Mensaje flash (redirect desde detalle de equipo inexistente) -->
+  <div class="alert alert-success alert-dismissible fade show" role="alert"
+       th:if="${!#strings.isEmpty(mensaje)}">
+    <span th:text="${mensaje}"></span>
+  </div>
+
+  <table class="table table-striped">
+    <thead>
+    <tr><th>Id</th><th>Equipo</th></tr>
+    </thead>
+    <tbody>
+    <tr th:each="equipo : ${equipos}">
+      <td th:text="${equipo.id}"></td>
+      <td><a th:href="@{/equipos/{id}(id=${equipo.id})}" th:text="${equipo.nombre}"></a></td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+<div th:replace="fragments::javascript"></div>
+</body>
+</html>
