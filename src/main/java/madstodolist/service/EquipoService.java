@@ -76,4 +76,13 @@ public class EquipoService {
                 .map(equipo -> modelMapper.map(equipo, EquipoData.class))
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public void eliminarUsuarioDeEquipo(Long equipoId, Long usuarioId) {
+        Equipo equipo = equipoRepository.findById(equipoId)
+                .orElseThrow(() -> new EquipoServiceException("No existe el equipo con id " + equipoId));
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new EquipoServiceException("No existe el usuario con id " + usuarioId));
+        equipo.removeUsuario(usuario);
+    }
 }
