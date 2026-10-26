@@ -110,4 +110,33 @@ public class EquipoServiceTest {
         assertThatThrownBy(() -> equipoService.añadirUsuarioAEquipo(equipo.getId(), 1L))
                 .isInstanceOf(EquipoServiceException.class);
     }
+
+    @Test
+    public void eliminarUsuarioDeEquipo(){
+        //GIVEN
+        // Un usuario y un equipo en la base de datos
+        UsuarioData usuario1 = new UsuarioData();
+        usuario1.setEmail("user@ua");
+        usuario1.setPassword("123");
+        usuario1 = usuarioService.registrar(usuario1);
+
+        UsuarioData usuario2 = new UsuarioData();
+        usuario2.setEmail("user2@ua");
+        usuario2.setPassword("123");
+        usuario2 = usuarioService.registrar(usuario2);
+
+        EquipoData equipo = equipoService.crearEquipo("Proyecto 1");
+        equipoService.añadirUsuarioAEquipo(equipo.getId(), usuario1.getId());
+        equipoService.añadirUsuarioAEquipo(equipo.getId(), usuario2.getId());
+
+        // WHEN
+        // Eliminamos el usuario1 del equipo
+        equipoService.eliminarUsuarioDeEquipo(equipo.getId(), usuario1.getId());
+
+        // THEN
+        // Comprobamos que el usuario1 ya no pertenece al equipo
+        List<UsuarioData> usuarios = equipoService.usuariosEquipo(equipo.getId());
+        assertThat(usuarios).hasSize(1);
+        assertThat(usuarios.get(0).getEmail()).isEqualTo("user2@ua");
+    }
 }
