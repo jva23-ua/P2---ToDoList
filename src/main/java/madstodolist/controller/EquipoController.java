@@ -60,4 +60,46 @@ public class EquipoController {
         model.addAttribute("nombreUsuario", usuario.getNombre());
         return "detalleEquipo";
     }
+
+    @PostMapping("/equipos/{id}/usuarios")
+    public String añadirUsuarioEquipo(@PathVariable Long id,
+                                      @RequestParam("email") String email,
+                                      RedirectAttributes flash) {
+        Long idUsuarioLogeado = managerUserSession.usuarioLogeado();
+        if (idUsuarioLogeado == null) throw new UsuarioNoLogeadoException();
+
+        try {
+            equipoService.recuperarEquipo(id);
+        } catch (EquipoServiceException e) {
+            flash.addFlashAttribute("mensaje", "El equipo no existe");
+            return "redirect:/equipos";
+        }
+
+        UsuarioData usuario = usuarioService.findByEmail(email);
+        if (usuario == null) {
+            flash.addFlashAttribute("mensaje", "No existe ningún usuario registrado con ese email");
+            return "redirect:/equipos/" + id;
+        }
+
+        equipoService.añadirUsuarioAEquipo(id, usuario.getId());
+        flash.addFlashAttribute("mensaje", "Usuario añadido al equipo correctamente");
+        return "redirect:/equipos/" + id;
+    }
+
+    @PostMapping("/equipos/{idEquipo}/usuarios/{idUsuario}/eliminar")
+    public String eliminarUsuarioEquipo(@PathVariable Long idEquipo,
+                                        @PathVariable Long idUsuario,
+                                        RedirectAttributes flash) {
+        Long idUsuarioLogeado = managerUserSession.usuarioLogeado();
+        if (idUsuarioLogeado == null) throw new UsuarioNoLogeadoException();
+
+        try {
+            equipoService.eliminarUsuarioDeEquipo(idEquipo, idUsuario);
+            flash.addFlashAttribute("mensaje", "Usuario eliminado del equipo correctamente");
+            return "redirect:/equipos/" + idEquipo;
+        } catch (EquipoServiceException e) {
+            flash.addFlashAttribute("mensaje", e.getMessage());
+            return "redirect:/equipos";
+        }
+    }
 }

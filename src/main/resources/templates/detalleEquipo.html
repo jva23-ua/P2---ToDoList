@@ -9,12 +9,22 @@
 <div class="container-fluid mt-3">
   <h2 th:text="'Equipo: ' + ${equipo.nombre}"></h2>
 
+  <div class="alert alert-success alert-dismissible fade show" role="alert"
+       th:if="${!#strings.isEmpty(mensaje)}">
+    <span th:text="${mensaje}"></span>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <h4 class="mt-4">Miembros del equipo</h4>
   <table class="table table-striped">
     <thead>
     <tr>
       <th>Id</th>
       <th>Nombre</th>
       <th>Email</th>
+      <th>Acciones</th>
     </tr>
     </thead>
     <tbody>
@@ -22,11 +32,28 @@
       <td th:text="${usuario.id}"></td>
       <td th:text="${usuario.nombre}"></td>
       <td th:text="${usuario.email}"></td>
+      <td>
+        <form th:action="@{/equipos/{idEquipo}/usuarios/{idUsuario}/eliminar(idEquipo=${equipo.id}, idUsuario=${usuario.id})}"
+              method="post" class="d-inline">
+          <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+        </form>
+      </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(usuarios)}">
+      <td colspan="4" class="text-center">El equipo no tiene miembros</td>
     </tr>
     </tbody>
   </table>
 
-  <p><a class="btn btn-primary" th:href="@{/equipos}">Volver al listado</a></p>
+  <h4 class="mt-4">Añadir participante</h4>
+  <form th:action="@{/equipos/{id}/usuarios(id=${equipo.id})}" method="post" class="form-inline">
+    <label class="sr-only" for="email">Email del usuario</label>
+    <input type="email" class="form-control mb-2 mr-sm-2" id="email" name="email"
+           placeholder="Email del usuario" required/>
+    <button type="submit" class="btn btn-primary mb-2">Añadir al equipo</button>
+  </form>
+
+  <p class="mt-3"><a class="btn btn-primary" th:href="@{/equipos}">Volver al listado</a></p>
 </div>
 
 <div th:replace="fragments::javascript"></div>
