@@ -136,25 +136,88 @@ public class EquipoWebTest {
 
     @Test
     public void getDetalleEquipoMuestraControlesGestion() throws Exception {
+        Map<String, Long> ids = addUsuarioEquipoBD();
+        Long usuarioId = ids.get("usuarioId");
+        Long equipoId = ids.get("equipoId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+
+        this.mockMvc.perform(get("/equipos/" + equipoId))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Añadir al equipo")))
+                .andExpect(content().string(containsString("Eliminar")));
     }
 
     @Test
     public void postAddUsuarioAEquipoLoAnadeYSeRenderiza() throws Exception {
+        Map<String, Long> ids = addUsuarioEquipoBD();
+        Long usuarioId = ids.get("usuarioId");
+        Long equipoId = ids.get("equipoId");
+
+        UsuarioData usuario2 = new UsuarioData();
+        usuario2.setEmail("user2@ua");
+        usuario2.setPassword("123");
+        usuario2.setNombre("Participante 2");
+        usuario2 = usuarioService.registrar(usuario2);
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+        this.mockMvc.perform(post("/equipos/" + equipoId + "/usuarios")
+                    .param("email", usuario2.getEmail()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/equipos/" + equipoId));
+
+        assertThat(equipoService.usuariosEquipo(equipoId)).hasSize(2);
+
+        this.mockMvc.perform(get("/equipos/" + equipoId))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("user2@ua")))
+                .andExpect(content().string(containsString("Participante 2")));
     }
 
     @Test
     public void postAddUsuarioEmailNoRegistradoNoLoAnade() throws Exception {
+        Map<String, Long> ids = addUsuarioEquipoBD();
+        Long usuarioId = ids.get("usuarioId");
+        Long equipoId = ids.get("equipoId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+
+        this.mockMvc.perform(post("/equipos/" + equipoId + "/usuarios")
+                .param("email", "noExiste@ua"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/equipos/" + equipoId));
+
+        assertThat(equipoService.usuariosEquipo(equipoId)).hasSize(1);
     }
 
     @Test
     public void postEliminarUsuarioDeEquipoLoElimina() throws Exception {
+        Map<String, Long> ids = addUsuarioEquipoBD();
+        Long usuarioId = ids.get("usuarioId");
+        Long equipoId = ids.get("equipoId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+
+        this.mockMvc.perform(post("/equipos/" + equipoId + "/usuarios/" + usuarioId + "/eliminar"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/equipos/" + equipoId));
+
+        assertThat(equipoService.usuariosEquipo(equipoId)).hasSize(0);
     }
 
     @Test
     public void postAddUsuarioAEquipoSinLoginDevuelveNoAutorizado() throws Exception {
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(null);
+        this.mockMvc.perform(post("/equipos/1/usuarios")
+                .param("email", "algo@ua"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void postEliminarUsuarioDeEquipoSinLoginDevuelveNoAutorizado() throws Exception {
+        when(managerUserSession.usuarioLogeado()).thenReturn(null);
+        this.mockMvc.perform(post("/equipos/1/usuarios/1/eliminar"))
+                .andExpect(status().isUnauthorized());
     }
 }
