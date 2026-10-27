@@ -133,4 +133,28 @@ public class EquipoWebTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(urlRedirect));
     }
+
+    @Test
+    public void getDetalleEquipoMuestraControlesGestion() throws Exception {
+    }
+
+    @Test
+    public void postAddUsuarioAEquipoLoAnadeYSeRenderiza() throws Exception {
+    }
+
+    @Test
+    public void postAddUsuarioEmailNoRegistradoNoLoAnade() throws Exception {
+    }
+
+    @Test
+    public void postEliminarUsuarioDeEquipoLoElimina() throws Exception {
+    }
+
+    @Test
+    public void postAddUsuarioAEquipoSinLoginDevuelveNoAutorizado() throws Exception {
+    }
+
+    @Test
+    public void postEliminarUsuarioDeEquipoSinLoginDevuelveNoAutorizado() throws Exception {
+    }
 }
