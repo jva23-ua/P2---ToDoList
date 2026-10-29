@@ -17,12 +17,19 @@
 
   <table class="table table-striped">
     <thead>
-    <tr><th>Id</th><th>Equipo</th></tr>
+    <tr>
+      <th>Id</th>
+      <th>Equipo</th>
+      <th>Acciones</th>
+    </tr>
     </thead>
     <tbody>
     <tr th:each="equipo : ${equipos}">
       <td th:text="${equipo.id}"></td>
       <td><a th:href="@{/equipos/{id}(id=${equipo.id})}" th:text="${equipo.nombre}"></a></td>
+      <td>
+        <a class="btn btn-primary btn-xs" th:href="@{/equipos/{id}/editar(id=${equipo.id})}">Editar</a>
+      </td>
     </tr>
     </tbody>
   </table>
