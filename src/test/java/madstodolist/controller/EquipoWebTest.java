@@ -5,6 +5,7 @@ import madstodolist.dto.EquipoData;
 import madstodolist.dto.UsuarioData;
 import madstodolist.service.TareaService;
 import madstodolist.service.UsuarioService;
+import madstodolist.service.EquipoServiceException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -15,7 +16,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import madstodolist.service.EquipoService;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.containsString;
 
@@ -220,4 +223,93 @@ public class EquipoWebTest {
         this.mockMvc.perform(post("/equipos/1/usuarios/1/eliminar"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    public void postEditarNombreEquipoSinLoginDevuelveNoAutorizado() throws Exception {
+        when(managerUserSession.usuarioLogeado()).thenReturn(null);
+        this.mockMvc.perform(post("/equipos/1/editar")
+                    .param("nombre", "Nuevo Nombre"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test void postEditarNombreEquipoConUsuarioNoAdminDevuelveNoAutorizado() throws Exception {
+        Map<String, Long> ids = addUsuarioEquipoBD();
+        Long usuarioId = ids.get("usuarioId");
+        Long equipoId = ids.get("equipoId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+        this.mockMvc.perform(post("/equipos/" + equipoId + "/editar")
+                    .param("nombre", "Nuevo Nombre"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void postEditarNombreEquipoConUsuarioAdminEditaNombre() throws Exception {
+        // GIVEN
+        // usuario admin y un equipo en la base de datos
+        UsuarioData usuarioAdmin = new UsuarioData();
+        usuarioAdmin.setEmail("admin@ua");
+        usuarioAdmin.setPassword("123");
+        usuarioAdmin.setAdmin(true);
+        usuarioAdmin = usuarioService.registrar(usuarioAdmin);
+
+        EquipoData equipo = equipoService.crearEquipo("Nombre muy original");
+        // WHEN
+        // el usuario admin edita el nombre del equipo
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioAdmin.getId());
+
+        this.mockMvc.perform(post("/equipos/" + equipo.getId() + "/editar")
+            .param("nombre", "Nuevo Nombre"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/equipos"));
+
+        // THEN
+        // El nombre se ha persistido y se muestra en el listado
+        assertThat(equipoService.recuperarEquipo(equipo.getId()).getNombre())
+                .isEqualTo("Nuevo Nombre");
+        this.mockMvc.perform(get("/equipos"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Nuevo Nombre")));
+    }
+
+    @Test
+    public void getFormEditarEquipoMuestraFormularioConNombreActual() throws Exception {
+        // GET /equipos/{id}/editar; el formulario apunta al endpoint de guardado
+        // y precarga el nombre actual del equipo
+        Map<String, Long> ids = addUsuarioEquipoBD();
+        Long usuarioId = ids.get("usuarioId");
+        Long equipoId = ids.get("equipoId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+
+        this.mockMvc.perform(get("/equipos/" + equipoId + "/editar"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(
+                        "action=\"/equipos/" + equipoId + "/editar\"")))
+                .andExpect(content().string(containsString("Equipo 1")))
+                .andExpect(content().string(containsString("Modificar equipo")));
+    }
+
+    @Test
+    public void deleteEquipoLoElimina() throws Exception {
+        // GIVEN
+        // un equipo con un miembro en la base de datos
+        Map<String, Long> ids = addUsuarioEquipoBD();
+        Long usuarioId = ids.get("usuarioId");
+        Long equipoId = ids.get("equipoId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+
+        // WHEN
+        // Se envía la petición DELETE que lanza el botón "Borrar"
+        this.mockMvc.perform(delete("/equipos/" + equipoId))
+                .andExpect(status().isOk());
+
+        // THEN
+        // El equipo ya no existe y el usuario ya no pertenece a él
+        assertThatThrownBy(() -> equipoService.recuperarEquipo(equipoId))
+                .isInstanceOf(EquipoServiceException.class);
+        assertThat(equipoService.equiposUsuario(usuarioId)).isEmpty();
+    }
+
 }
