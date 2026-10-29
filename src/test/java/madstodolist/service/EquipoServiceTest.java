@@ -139,4 +139,20 @@ public class EquipoServiceTest {
         assertThat(usuarios).hasSize(1);
         assertThat(usuarios.get(0).getEmail()).isEqualTo("user2@ua");
     }
+
+    @Test
+    public void editarNombreEquipo(){
+        //GIVEN
+        // un equipo en la BD
+        EquipoData equipo = equipoService.crearEquipo("Proyecto 1");
+
+        // WHEN
+        // editamos el nombre del equipo
+        equipoService.editarNombreEquipo(equipo.getId(), "Proyecto 2");
+
+        // THEN
+        // Comprobamos que el nombre del equipo ha sido modificado
+        EquipoData equipoBD = equipoService.recuperarEquipo(equipo.getId());
+        assertThat(equipoBD.getNombre()).isEqualTo("Proyecto 2");
+    }
 }
