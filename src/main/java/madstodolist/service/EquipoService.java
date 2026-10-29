@@ -88,6 +88,9 @@ public class EquipoService {
 
     @Transactional
     public void editarNombreEquipo(Long id, String nuevoNombre){
+        if (nuevoNombre == null || nuevoNombre.isEmpty()) {
+            throw new EquipoServiceException("El nombre del equipo no puede ser nulo o vacío");
+        }
         Equipo equipo = equipoRepository.findById(id)
                 .orElseThrow(() -> new EquipoServiceException("No existe el equipo con id " + id));
         equipo.setNombre(nuevoNombre);

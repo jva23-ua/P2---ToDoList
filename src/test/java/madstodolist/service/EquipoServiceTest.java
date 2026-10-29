@@ -164,7 +164,12 @@ public class EquipoServiceTest {
     public void eliminarEquipo(){
         //GIVEN
         // 1 equipo en la BD
+        UsuarioData usuario = new UsuarioData();
+        usuario.setEmail("user@ua");
+        usuario.setPassword("123");
+        usuario = usuarioService.registrar(usuario);
         EquipoData equipo = equipoService.crearEquipo("Proyecto 1");
+        equipoService.añadirUsuarioAEquipo(equipo.getId(), usuario.getId());
 
         // WHEN
         // eliminamos el equipo
@@ -174,5 +179,6 @@ public class EquipoServiceTest {
         // Comprobamos que el equipo ha sido eliminado
         assertThatThrownBy(() -> equipoService.recuperarEquipo(equipo.getId()))
                 .isInstanceOf(EquipoServiceException.class);
+        assertThat(equipoService.equiposUsuario(usuario.getId())).isEmpty();
     }
 }
