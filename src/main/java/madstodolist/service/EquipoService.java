@@ -85,4 +85,22 @@ public class EquipoService {
                 .orElseThrow(() -> new EquipoServiceException("No existe el usuario con id " + usuarioId));
         equipo.removeUsuario(usuario);
     }
+
+    @Transactional
+    public void editarNombreEquipo(Long id, String nuevoNombre){
+        if (nuevoNombre == null || nuevoNombre.isEmpty()) {
+            throw new EquipoServiceException("El nombre del equipo no puede ser nulo o vacío");
+        }
+        Equipo equipo = equipoRepository.findById(id)
+                .orElseThrow(() -> new EquipoServiceException("No existe el equipo con id " + id));
+        equipo.setNombre(nuevoNombre);
+    }
+
+    @Transactional
+    public void eliminarEquipo(Long id){
+        Equipo equipo = equipoRepository.findById(id)
+                .orElseThrow(() -> new EquipoServiceException("No existe el equipo con id " + id));
+        equipoRepository.delete(equipo);
+    }
+
 }

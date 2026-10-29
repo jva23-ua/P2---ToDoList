@@ -49,6 +49,7 @@ public class Equipo implements Serializable {
     public void setId(Long id){
         this.id = id;
     }
+    public void setNombre(String nombre){ this.nombre = nombre; }
 
     public Set<Usuario> getUsuarios(){
         return usuarios;
