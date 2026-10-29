@@ -92,4 +92,12 @@ public class EquipoService {
                 .orElseThrow(() -> new EquipoServiceException("No existe el equipo con id " + id));
         equipo.setNombre(nuevoNombre);
     }
+
+    @Transactional
+    public void eliminarEquipo(Long id){
+        Equipo equipo = equipoRepository.findById(id)
+                .orElseThrow(() -> new EquipoServiceException("No existe el equipo con id " + id));
+        equipoRepository.delete(equipo);
+    }
+
 }
