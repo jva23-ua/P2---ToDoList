@@ -139,4 +139,18 @@ public class EquipoController {
             return "redirect:/equipos";
         }
     }
+
+    @DeleteMapping("/equipos/{id}")
+    @ResponseBody
+    public String eliminarEquipo(@PathVariable(value="id") Long equipoId, RedirectAttributes flash) {
+        Long idUsuarioLogeado = managerUserSession.usuarioLogeado();
+        if (idUsuarioLogeado == null) throw new UsuarioNoLogeadoException();
+
+        try {
+            equipoService.eliminarEquipo(equipoId);
+            return "";
+        } catch (EquipoServiceException e) {
+            return "ERROR: " + e.getMessage();
+        }
+    }
 }

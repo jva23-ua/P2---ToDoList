@@ -29,6 +29,8 @@
       <td><a th:href="@{/equipos/{id}(id=${equipo.id})}" th:text="${equipo.nombre}"></a></td>
       <td>
         <a class="btn btn-primary btn-xs" th:href="@{/equipos/{id}/editar(id=${equipo.id})}">Editar</a>
+        <button class="btn btn-danger btn-xs" onmouseover="" style="cursor: pointer;"
+                th:onclick="'del(\'/equipos/' + ${equipo.id} + '\')'">Borrar</button>
       </td>
     </tr>
     </tbody>
@@ -36,5 +38,17 @@
 </div>
 
 <div th:replace="fragments::javascript"></div>
+
+<!-- Lanzamos una petición DELETE por JavaScript para borrar un equipo -->
+<script type="text/javascript">
+    function del(urlBorrar) {
+        if (confirm('¿Estás seguro/a de que quieres borrar el equipo?')) {
+            fetch(urlBorrar, {
+                method: 'DELETE'
+            }).then((res) => location.reload());
+        }
+    }
+</script>
+
 </body>
 </html>
