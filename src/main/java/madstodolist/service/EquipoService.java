@@ -26,12 +26,13 @@ public class EquipoService {
 
     @Transactional
     public EquipoData crearEquipo(String nombre) {
-        // Completar
+        if (nombre == null || nombre.isEmpty()) {
+            throw new EquipoServiceException("El nombre del equipo no puede ser nulo o vacío");
+        }
         Equipo equipo = new Equipo(nombre);
         Equipo equipoNuevo = modelMapper.map(equipo, Equipo.class);
         equipoNuevo = equipoRepository.save(equipoNuevo);
         return modelMapper.map(equipoNuevo, EquipoData.class);
-
     }
 
     @Transactional(readOnly = true)
