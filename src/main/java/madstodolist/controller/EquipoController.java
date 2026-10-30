@@ -36,6 +36,7 @@ public class EquipoController {
         model.addAttribute("equipos", equipoService.findAllOrdenadoPorNombre());
         model.addAttribute("usuarioLogeado", idUsuarioLogeado);
         model.addAttribute("nombreUsuario", usuario.getNombre());
+        model.addAttribute("esAdmin", usuario.isAdmin());
         return "listaEquipos";
     }
 
@@ -78,7 +79,7 @@ public class EquipoController {
         if (idUsuarioLogeado == null) throw new UsuarioNoLogeadoException();
 
         UsuarioData usuario = usuarioService.findById(idUsuarioLogeado);
-        if (usuario == null) throw new UsuarioNoLogeadoException();
+        if (usuario == null || !usuario.isAdmin()) throw new UsuarioNoLogeadoException();
 
         try {
             model.addAttribute("equipo", equipoService.recuperarEquipo(equipoId));
@@ -178,6 +179,9 @@ public class EquipoController {
     public String eliminarEquipo(@PathVariable(value="id") Long equipoId, RedirectAttributes flash) {
         Long idUsuarioLogeado = managerUserSession.usuarioLogeado();
         if (idUsuarioLogeado == null) throw new UsuarioNoLogeadoException();
+
+        UsuarioData usuario = usuarioService.findById(idUsuarioLogeado);
+        if (usuario == null || !usuario.isAdmin()) throw new UsuarioNoLogeadoException();
 
         try {
             equipoService.eliminarEquipo(equipoId);
