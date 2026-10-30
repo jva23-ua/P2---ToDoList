@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.stream.Collectors;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -57,6 +58,9 @@ public class EquipoService {
                 .orElseThrow(() -> new EquipoServiceException("No existe el equipo con id " + idEquipo));
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new EquipoServiceException("No existe el usuario con id " + idUsuario));
+        if (equipo.getUsuarios().contains(usuario)) {
+            throw new EquipoServiceException("Usuario ya en el equipo");
+        }
         equipo.addUsuario(usuario);
     }
 
@@ -65,8 +69,11 @@ public class EquipoService {
         Equipo equipo = equipoRepository.findById(id)
                 .orElseThrow(() -> new EquipoServiceException("No existe el equipo con id " + id));
         // Hacemos uso de Java Stream API para mapear la lista de entidades a DTOs.
+        // La lista de miembros se devuelve ordenada alfabéticamente por nombre.
         return equipo.getUsuarios().stream()
                 .map(usuario -> modelMapper.map(usuario, UsuarioData.class))
+                .sorted(Comparator.comparing(UsuarioData::getNombre,
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
                 .collect(Collectors.toList());
     }
     @Transactional(readOnly = true)

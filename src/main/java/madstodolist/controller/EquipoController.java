@@ -36,7 +36,6 @@ public class EquipoController {
         model.addAttribute("equipos", equipoService.findAllOrdenadoPorNombre());
         model.addAttribute("usuarioLogeado", idUsuarioLogeado);
         model.addAttribute("nombreUsuario", usuario.getNombre());
-        model.addAttribute("esAdmin", usuario.isAdmin());
         return "listaEquipos";
     }
 
@@ -152,8 +151,12 @@ public class EquipoController {
             return "redirect:/equipos/" + id;
         }
 
-        equipoService.añadirUsuarioAEquipo(id, usuario.getId());
-        flash.addFlashAttribute("mensaje", "Usuario añadido al equipo correctamente");
+        try {
+            equipoService.añadirUsuarioAEquipo(id, usuario.getId());
+            flash.addFlashAttribute("mensaje", "Usuario añadido al equipo correctamente");
+        } catch (EquipoServiceException e) {
+            flash.addFlashAttribute("mensaje", e.getMessage());
+        }
         return "redirect:/equipos/" + id;
     }
 

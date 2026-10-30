@@ -30,6 +30,9 @@
             <li class="nav-item">
                 <a class="nav-link" th:href="@{/equipos}">Equipos</a>
             </li>
+            <li class="nav-item" th:if="${esAdmin}">
+                <a class="nav-link" th:href="@{/registrados}">Registrados</a>
+            </li>
         </ul>
 
         <ul class="navbar-nav ml-auto" th:if="${usuarioLogeado != null}">
