@@ -63,6 +63,23 @@ public class EquipoWebTest {
         return ids;
     }
 
+    Map<String, Long> addAdminEquipoBD() {
+        UsuarioData admin = new UsuarioData();
+        admin.setEmail("admin_prb@ua");
+        admin.setPassword("123");
+        admin.setNombre("Admin Ejemplo");
+        admin.setAdmin(true);
+        admin = usuarioService.registrar(admin);
+
+        EquipoData equipo = equipoService.crearEquipo("Equipo 1");
+        equipoService.añadirUsuarioAEquipo(equipo.getId(), admin.getId());
+
+        Map<String, Long> ids = new HashMap<>();
+        ids.put("usuarioId", admin.getId());
+        ids.put("equipoId", equipo.getId());
+        return ids;
+    }
+
 
 
     @Test
@@ -274,9 +291,9 @@ public class EquipoWebTest {
 
     @Test
     public void getFormEditarEquipoMuestraFormularioConNombreActual() throws Exception {
-        // GET /equipos/{id}/editar; el formulario apunta al endpoint de guardado
-        // y precarga el nombre actual del equipo
-        Map<String, Long> ids = addUsuarioEquipoBD();
+        // GET /equipos/{id}/editar (como administrador); el formulario apunta
+        // al endpoint de guardado y precarga el nombre actual del equipo
+        Map<String, Long> ids = addAdminEquipoBD();
         Long usuarioId = ids.get("usuarioId");
         Long equipoId = ids.get("equipoId");
 
@@ -293,8 +310,8 @@ public class EquipoWebTest {
     @Test
     public void deleteEquipoLoElimina() throws Exception {
         // GIVEN
-        // un equipo con un miembro en la base de datos
-        Map<String, Long> ids = addUsuarioEquipoBD();
+        // un equipo con un miembro (administrador) en la base de datos
+        Map<String, Long> ids = addAdminEquipoBD();
         Long usuarioId = ids.get("usuarioId");
         Long equipoId = ids.get("equipoId");
 
@@ -312,4 +329,120 @@ public class EquipoWebTest {
         assertThat(equipoService.equiposUsuario(usuarioId)).isEmpty();
     }
 
+    @Test
+    public void deleteEquipoUsuarioNoAdminDevuelveNoAutorizado() throws Exception {
+        // Un usuario logueado que no es administrador no puede borrar equipos
+        Map<String, Long> ids = addUsuarioEquipoBD();
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(ids.get("usuarioId"));
+
+        this.mockMvc.perform(delete("/equipos/" + ids.get("equipoId")))
+                .andExpect(status().isUnauthorized());
+
+        // El equipo no se ha eliminado
+        assertThat(equipoService.findAllOrdenadoPorNombre()).hasSize(1);
+    }
+
+
+    @Test
+    public void getFormularioNuevoEquipoUsuarioLogueado() throws Exception {
+        // GET /equipos/nuevo; el formulario apunta al endpoint de creación
+        // y muestra los botones de crear y cancelar
+        Long usuarioId = addUsuarioEquipoBD().get("usuarioId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+
+        this.mockMvc.perform(get("/equipos/nuevo"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("action=\"/equipos/nuevo\"")))
+                .andExpect(content().string(containsString("Crear equipo")))
+                .andExpect(content().string(containsString("Cancelar")));
+    }
+
+    @Test
+    public void getFormularioNuevoEquipoUsuarioNoLogueado() throws Exception {
+        // usuarioLogeado() -> null; espera 401
+        when(managerUserSession.usuarioLogeado()).thenReturn(null);
+
+        this.mockMvc.perform(get("/equipos/nuevo"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void postFormularioNuevoEquipo() throws Exception {
+        // GIVEN
+        // un usuario logueado
+        Long usuarioId = addUsuarioEquipoBD().get("usuarioId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+
+        // WHEN
+        // Se envía el formulario de nuevo equipo
+        this.mockMvc.perform(post("/equipos/nuevo")
+                        .param("nombre", "Proyecto Nuevo"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/equipos"));
+
+        // THEN
+        // El equipo se ha creado y aparece en el listado de equipos
+        assertThat(equipoService.findAllOrdenadoPorNombre())
+                .extracting(EquipoData::getNombre)
+                .contains("Proyecto Nuevo");
+        this.mockMvc.perform(get("/equipos"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Proyecto Nuevo")));
+    }
+
+    @Test
+    public void postFormularioNuevoEquipoConNombreVacioNoLoCrea() throws Exception {
+        // GIVEN
+        // un usuario logueado
+        Long usuarioId = addUsuarioEquipoBD().get("usuarioId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+
+        // WHEN
+        // Se envía el formulario con el nombre vacío (la validación del servicio lo rechaza)
+        // THEN
+        // Se vuelve al formulario con el mensaje de error y no se crea el equipo
+        this.mockMvc.perform(post("/equipos/nuevo")
+                        .param("nombre", ""))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/equipos/nuevo"))
+                .andExpect(flash().attribute("mensaje",
+                        "El nombre del equipo no puede ser nulo o vacío"));
+
+        // Solo sigue existiendo el equipo creado en el GIVEN
+        assertThat(equipoService.findAllOrdenadoPorNombre()).hasSize(1);
+    }
+
+    @Test
+    public void getEquiposOcultaAccionesAUsuariosNoAdmin() throws Exception {
+        // El listado no muestra los botones Editar/Borrar a los no administradores
+        Long usuarioId = addUsuarioEquipoBD().get("usuarioId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+
+        String html = this.mockMvc.perform(get("/equipos"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        // Ojo: "Borrar" también aparece en urlBorrar, del script del();
+        // comprobamos el botón y el enlace de edición concretos
+        assertThat(html).doesNotContain(">Borrar</button>", "/editar");
+    }
+
+    @Test
+    public void getEquiposMuestraAccionesAAdmin() throws Exception {
+        // El listado muestra los botones Editar/Borrar al administrador
+        Long adminId = addAdminEquipoBD().get("usuarioId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(adminId);
+
+        String html = this.mockMvc.perform(get("/equipos"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        assertThat(html).contains(">Borrar</button>", "/editar");
+    }
 }

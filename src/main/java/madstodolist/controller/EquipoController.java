@@ -1,6 +1,7 @@
 package madstodolist.controller;
 import madstodolist.authentication.ManagerUserSession;
 import madstodolist.controller.exception.UsuarioNoLogeadoException;
+import madstodolist.dto.EquipoData;
 import madstodolist.dto.UsuarioData;
 import madstodolist.service.EquipoService;
 import madstodolist.service.EquipoServiceException;
@@ -38,6 +39,38 @@ public class EquipoController {
         return "listaEquipos";
     }
 
+    @GetMapping("/equipos/nuevo")
+    public String formNuevoEquipo(Model model) {
+        Long idUsuarioLogeado = managerUserSession.usuarioLogeado();
+        if (idUsuarioLogeado == null) throw new UsuarioNoLogeadoException();
+
+        UsuarioData usuario = usuarioService.findById(idUsuarioLogeado);
+        if (usuario == null) throw new UsuarioNoLogeadoException();
+
+        model.addAttribute("equipo", new EquipoData());
+        model.addAttribute("usuarioLogeado", idUsuarioLogeado);
+        model.addAttribute("nombreUsuario", usuario.getNombre());
+        return "formNuevoEquipo";
+    }
+
+    @PostMapping("/equipos/nuevo")
+    public String nuevoEquipo(@ModelAttribute EquipoData equipoData,
+                              RedirectAttributes flash) {
+        Long idUsuarioLogeado = managerUserSession.usuarioLogeado();
+        if (idUsuarioLogeado == null) throw new UsuarioNoLogeadoException();
+
+        if (usuarioService.findById(idUsuarioLogeado) == null) throw new UsuarioNoLogeadoException();
+
+        try {
+            equipoService.crearEquipo(equipoData.getNombre());
+            flash.addFlashAttribute("mensaje", "Equipo creado correctamente");
+            return "redirect:/equipos";
+        } catch (EquipoServiceException e) {
+            flash.addFlashAttribute("mensaje", e.getMessage());
+            return "redirect:/equipos/nuevo";
+        }
+    }
+
     @GetMapping("/equipos/{id}/editar")
     public String formEditarEquipo(@PathVariable("id") Long equipoId, Model model,
                                    RedirectAttributes flash) {
@@ -45,7 +78,7 @@ public class EquipoController {
         if (idUsuarioLogeado == null) throw new UsuarioNoLogeadoException();
 
         UsuarioData usuario = usuarioService.findById(idUsuarioLogeado);
-        if (usuario == null) throw new UsuarioNoLogeadoException();
+        if (usuario == null || !usuario.isAdmin()) throw new UsuarioNoLogeadoException();
 
         try {
             model.addAttribute("equipo", equipoService.recuperarEquipo(equipoId));
@@ -118,8 +151,12 @@ public class EquipoController {
             return "redirect:/equipos/" + id;
         }
 
-        equipoService.añadirUsuarioAEquipo(id, usuario.getId());
-        flash.addFlashAttribute("mensaje", "Usuario añadido al equipo correctamente");
+        try {
+            equipoService.añadirUsuarioAEquipo(id, usuario.getId());
+            flash.addFlashAttribute("mensaje", "Usuario añadido al equipo correctamente");
+        } catch (EquipoServiceException e) {
+            flash.addFlashAttribute("mensaje", e.getMessage());
+        }
         return "redirect:/equipos/" + id;
     }
 
@@ -145,6 +182,9 @@ public class EquipoController {
     public String eliminarEquipo(@PathVariable(value="id") Long equipoId, RedirectAttributes flash) {
         Long idUsuarioLogeado = managerUserSession.usuarioLogeado();
         if (idUsuarioLogeado == null) throw new UsuarioNoLogeadoException();
+
+        UsuarioData usuario = usuarioService.findById(idUsuarioLogeado);
+        if (usuario == null || !usuario.isAdmin()) throw new UsuarioNoLogeadoException();
 
         try {
             equipoService.eliminarEquipo(equipoId);

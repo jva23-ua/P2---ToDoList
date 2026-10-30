@@ -7,12 +7,18 @@
 <div th:replace="fragments :: navbar(${usuarioLogeado}, ${nombreUsuario})"></div>
 
 <div class="container-fluid mt-3">
-  <h2>Listado de equipos</h2>
+  <div class="d-flex justify-content-between align-items-center">
+    <h2>Listado de equipos</h2>
+    <a class="btn btn-primary" th:href="@{/equipos/nuevo}">Nuevo equipo</a>
+  </div>
 
   <!-- Mensaje flash (redirect desde detalle de equipo inexistente) -->
   <div class="alert alert-success alert-dismissible fade show" role="alert"
        th:if="${!#strings.isEmpty(mensaje)}">
     <span th:text="${mensaje}"></span>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+      <span aria-hidden="true">&times;</span>
+    </button>
   </div>
 
   <table class="table table-striped">
@@ -20,14 +26,14 @@
     <tr>
       <th>Id</th>
       <th>Equipo</th>
-      <th>Acciones</th>
+      <th th:if="${esAdmin}">Acciones</th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="equipo : ${equipos}">
       <td th:text="${equipo.id}"></td>
       <td><a th:href="@{/equipos/{id}(id=${equipo.id})}" th:text="${equipo.nombre}"></a></td>
-      <td>
+      <td th:if="${esAdmin}">
         <a class="btn btn-primary btn-xs" th:href="@{/equipos/{id}/editar(id=${equipo.id})}">Editar</a>
         <button class="btn btn-danger btn-xs" onmouseover="" style="cursor: pointer;"
                 th:onclick="'del(\'/equipos/' + ${equipo.id} + '\')'">Borrar</button>
