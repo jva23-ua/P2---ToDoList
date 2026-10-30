@@ -312,4 +312,75 @@ public class EquipoWebTest {
         assertThat(equipoService.equiposUsuario(usuarioId)).isEmpty();
     }
 
+    @Test
+    public void getFormularioNuevoEquipoUsuarioLogueado() throws Exception {
+        // GET /equipos/nuevo; el formulario apunta al endpoint de creación
+        // y muestra los botones de crear y cancelar
+        Long usuarioId = addUsuarioEquipoBD().get("usuarioId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+
+        this.mockMvc.perform(get("/equipos/nuevo"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("action=\"/equipos/nuevo\"")))
+                .andExpect(content().string(containsString("Crear equipo")))
+                .andExpect(content().string(containsString("Cancelar")));
+    }
+
+    @Test
+    public void getFormularioNuevoEquipoUsuarioNoLogueado() throws Exception {
+        // usuarioLogeado() -> null; espera 401
+        when(managerUserSession.usuarioLogeado()).thenReturn(null);
+
+        this.mockMvc.perform(get("/equipos/nuevo"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void postFormularioNuevoEquipo() throws Exception {
+        // GIVEN
+        // un usuario logueado
+        Long usuarioId = addUsuarioEquipoBD().get("usuarioId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+
+        // WHEN
+        // Se envía el formulario de nuevo equipo
+        this.mockMvc.perform(post("/equipos/nuevo")
+                        .param("nombre", "Proyecto Nuevo"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/equipos"));
+
+        // THEN
+        // El equipo se ha creado y aparece en el listado de equipos
+        assertThat(equipoService.findAllOrdenadoPorNombre())
+                .extracting(EquipoData::getNombre)
+                .contains("Proyecto Nuevo");
+        this.mockMvc.perform(get("/equipos"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Proyecto Nuevo")));
+    }
+
+    @Test
+    public void postFormularioNuevoEquipoConNombreVacioNoLoCrea() throws Exception {
+        // GIVEN
+        // un usuario logueado
+        Long usuarioId = addUsuarioEquipoBD().get("usuarioId");
+
+        when(managerUserSession.usuarioLogeado()).thenReturn(usuarioId);
+
+        // WHEN
+        // Se envía el formulario con el nombre vacío (la validación del servicio lo rechaza)
+        // THEN
+        // Se vuelve al formulario con el mensaje de error y no se crea el equipo
+        this.mockMvc.perform(post("/equipos/nuevo")
+                        .param("nombre", ""))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/equipos/nuevo"))
+                .andExpect(flash().attribute("mensaje",
+                        "El nombre del equipo no puede ser nulo o vacío"));
+
+        // Solo sigue existiendo el equipo creado en el GIVEN
+        assertThat(equipoService.findAllOrdenadoPorNombre()).hasSize(1);
+    }
 }
